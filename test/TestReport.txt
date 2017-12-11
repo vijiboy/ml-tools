@@ -1,10 +1,10 @@
-test_ImageBlocksStoreWidthHeightAndOverlap (test_training.TestTrainingData_Creation) ... skipped 'TODO: Design: group imageBlocks and Block(Width/Height), (Horizontal/Vertical) Shift'
+test_ImageBlocksStoreWidthHeightAndOverlap (test_training.TestTrainingData_Creation) ... SKIP: TODO: Design: group imageBlocks and Block(Width/Height), (Horizontal/Vertical) Shift
 test_SplitsImageInBlocks_PerfectSplittingImage (test_training.TestTrainingData_Creation) ... ok
 test_SplitsImageInBlocks_UnequallySplittingImage (test_training.TestTrainingData_Creation) ... ok
 test_SplitsImageInBlocks_WithOverlappingBlocks (test_training.TestTrainingData_Creation) ... ok
-test_LabelsAnImageUsingMasking (test_training.TestTrainingData_Labelling) ... skipped 'TODO: Next'
+test_MarkPixelUsingAdvancedIndexing (test_training.TestTrainingData_Labelling) ... ok
 
 ----------------------------------------------------------------------
-Ran 5 tests in 0.003s
+Ran 5 tests in 0.208s
 
-OK (skipped=2)
+OK (SKIP=1)

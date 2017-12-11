@@ -55,8 +55,12 @@ class TestTrainingData_Creation(unittest.TestCase):
 
 class TestTrainingData_Labelling(unittest.TestCase):
 
-    @unittest.skip("TODO: Next")
-    def test_LabelsAnImageUsingMasking(self):
-        input_image = data.loadImageFromFile('test/EquallySplitting_Image.png')
-        imageBlocks = data.SplitImageinBlocksByShifting(original_image)
+    def test_MarkPixelUsingAdvancedIndexing(self):
+        imgArray = np.arange(0,27,1)
+        imgArray.shape = (3,3,3) # assuming an 'RGB' image of size 3X3
+        binaryMask = np.ndarray(imgArray.shape[:2], dtype = np.bool) # binary mask to mark individual pixels
+        binaryMask = False
+        self.assertTrue((binaryMask==False))
+
+        
         
