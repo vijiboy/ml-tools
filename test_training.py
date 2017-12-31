@@ -55,7 +55,7 @@ class TestTrainingData_Creation(unittest.TestCase):
 
 class TestTrainingData_Labelling(unittest.TestCase):
 
-    def test_MarkPixelUsingAdvancedIndexing(self):
+    def test_MarkingImagePixelsUsesNumpyBinaryMask_AdvancedIndexing(self):
         # Create an 'RGB' image of size 3X3
         imgArray = np.arange(0,27,1)
         imgArray.shape = (3,3,3) 
@@ -65,3 +65,9 @@ class TestTrainingData_Labelling(unittest.TestCase):
         self.assertTrue((binaryMask==False).all())
         binaryMask[2] = True # mark few pixels using binary index
         self.assertTrue((imgArray[binaryMask]==imgArray[2]).all()) # use binary advanced indexing
+
+    def test_MarkedPixelsFormBinaryMask_WhichRetrievesSelectiveBlocks(self):
+        original_image = data.loadImageFromFile('test/EquallySplitting_Image.png')
+        binaryMask = np.ndarray(original_image.shape[:2], dtype = np.bool) 
+        binaryMask[:] = False
+        binaryMask[2] = True # mark few pixels using binary index

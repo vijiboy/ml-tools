@@ -3,14 +3,18 @@ import numpy as np
 import logging as log
 
 def SplitImageinBlocksByShifting(Image,
-                                 BlockWidth=10, BlockHeight=10,
-                                     OverlapHorizontal=0, OverlapVertical=0):
-    ''' splits an image into blocks of size BlockWidth X BlockHeight pixels, 
+                                 BlockWidth=10, BlockHeight=10, 
+                                 OverlapHorizontal=0, OverlapVertical=0,
+                                 SelectionMask=None, InvertMask=False):
+    ''' Splits an image into blocks of size BlockWidth X BlockHeight pixels, 
 blocks are created by traversing first from left to right and then top to bottom,
-shifting by HorizontalShift pixels and VerticalShift pixels respectively '''
+shifting by HorizontalShift pixels and VerticalShift pixels respectively 
+SelectionMask (if not None,) selects blocks where its True. setting InvertMask=True selects blocks where SelectionMask is False '''
     if OverlapHorizontal >= BlockWidth or OverlapVertical >= BlockHeight:
         raise ValueError("Invalid Argument: Vertical and/or Horizontal Overlap Values."
                          " Ensure Overlaps are more than Block Height/Width ")
+    if SelectionMask is not None and SelectionMask.shape is not Image.shape:
+        raise ValueError("Invalid Argument: SelectionMask Should be of same size as Image")
     imageBlocks = []
     imageHeight = Image.shape[0]
     imageWidth = Image.shape[1]
