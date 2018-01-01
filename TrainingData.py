@@ -4,17 +4,14 @@ import logging as log
 
 def SplitImageinBlocksByShifting(Image,
                                  BlockWidth=10, BlockHeight=10, 
-                                 OverlapHorizontal=0, OverlapVertical=0,
-                                 SelectionMask=None, InvertMask=False):
+                                 OverlapHorizontal=0, OverlapVertical=0):
     ''' Splits an image into blocks of size BlockWidth X BlockHeight pixels, 
 blocks are created by traversing first from left to right and then top to bottom,
 shifting by HorizontalShift pixels and VerticalShift pixels respectively 
-SelectionMask (if not None,) selects blocks where its True. setting InvertMask=True selects blocks where SelectionMask is False '''
+'''
     if OverlapHorizontal >= BlockWidth or OverlapVertical >= BlockHeight:
-        raise ValueError("Invalid Argument: Vertical and/or Horizontal Overlap Values."
+        raise ValueError("Invalid Argument: Vertical and/or Horizontal Overlap Values." 
                          " Ensure Overlaps are more than Block Height/Width ")
-    if SelectionMask is not None and SelectionMask.shape is not Image.shape:
-        raise ValueError("Invalid Argument: SelectionMask Should be of same size as Image")
     imageBlocks = []
     imageHeight = Image.shape[0]
     imageWidth = Image.shape[1]
@@ -31,6 +28,19 @@ SelectionMask (if not None,) selects blocks where its True. setting InvertMask=T
         imageBlocks.append(imageBlocksInRow)
         row = row + BlockHeight - OverlapVertical
     return imageBlocks
+
+def IsImageBlockSatisfyingSelectionPercentage(Image, SelectionMask, InvertMask=False, SelectionPercentage = 10):
+    ''' Returns True if SelectionMask (a binary mask) is True for more than 10% of total Image pixels, else returns False. 
+Setting InvertMask=True selects Image pixels where SelectionMask is False ''' 
+    if SelectionMask.shape != Image.shape[:2]: #image assumed RGB / 3-plane and Mask assumed Gray Scale i.e. single plane
+        raise ValueError("Invalid Argument: SelectionMask shape/size {} should be same as Image {}".format(SelectionMask.shape, Image.shape[:2]))
+    AllowedPixels = SelectedPixels = np.count_nonzero(SelectionMask)
+    if InvertMask : 
+        AllowedPixels = len(SelectionMask) - SelectedPixels
+    AllowedPixelsPercent = int(round(AllowedPixels * 1.0 / len(SelectionMask)))
+    return AllowedPixelsPercent >= SelectionPercentage # 
+
+    
 
 
 def CreateImageFromBlocks(ImageBlocks, BlankImage, BlockWidth=10, BlockHeight=10,
