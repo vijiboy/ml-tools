@@ -64,16 +64,30 @@ class TestTrainingData_Labelling(unittest.TestCase):
         binaryMask[:] = False
         self.assertTrue((binaryMask==False).all())
         binaryMask[2] = True # mark few pixels using binary index
-        self.assertTrue((imgArray[binaryMask].flat==imgArray[2].flat).all()) # use binary advanced indexing
+        # use binary advanced indexing
+        self.assertTrue((imgArray[binaryMask].flat==imgArray[2].flat).all()) 
 
     def test_BinaryMaskDecidesIfImageBlockIsSelectedOrNot(self):
         image = data.loadImageFromFile('test/EquallySplitting_Image.png')
         binaryMask = np.ndarray(image.shape[:2], dtype = np.bool) 
-        binaryMask[:] = False # initialise block. masking all pixels, marking none.
-        self.assertFalse(data.IsImageBlockSatisfyingSelectionPercentage(image, SelectionMask=binaryMask))
-        binaryMask[:] = True # initialise block. unmasking all pixels, marking all.
-        self.assertTrue(data.IsImageBlockSatisfyingSelectionPercentage(image, SelectionMask=binaryMask))
-
+        # Enable Complete Mask (False). masking all pixels, marking none.
+        binaryMask[:] = False 
+        self.assertFalse(data.IsImageBlockSatisfyingSelectionPercentage
+                         (image, SelectionMask=binaryMask))
+        # Disable mask for less than 10% i.e. 9% of the image pixels
+        binaryMask[:9,:4] = True  # 36 = 9% of 400
+        self.assertEqual(np.count_nonzero(binaryMask.flat),36) 
+        self.assertFalse(data.IsImageBlockSatisfyingSelectionPercentage
+                         (image, SelectionMask=binaryMask))
+        # Disable Complete Mask (True). unmasking all pixels, marking all.
+        binaryMask[:] = True 
+        self.assertTrue(data.IsImageBlockSatisfyingSelectionPercentage
+                        (image, SelectionMask=binaryMask))
+        # Enable 10% of the mask
+        binaryMask[:] = False 
+        binaryMask[:10,:4] = True # 40 = 10% of 400 
+        self.assertTrue(data.IsImageBlockSatisfyingSelectionPercentage
+                        (image, SelectionMask=binaryMask))
 
         #binaryMask[0:10,10:20] = True # mark (unmask) block whose rows are 0 to 10 and cols are 10:20
         

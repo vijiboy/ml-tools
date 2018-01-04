@@ -1,10 +1,13 @@
-test_ImageBlocksStoreWidthHeightAndOverlap (test_training.TestTrainingData_Creation) ... SKIP: TODO: Design: group imageBlocks and Block(Width/Height), (Horizontal/Vertical) Shift
+
+$ python -m unittest -v test_training
+test_ImageBlocksStoreWidthHeightAndOverlap (test_training.TestTrainingData_Creation) ... skipped 'TODO: Design: group imageBlocks and Block(Width/Height), (Horizontal/Vertical) Shift'
 test_SplitsImageInBlocks_PerfectSplittingImage (test_training.TestTrainingData_Creation) ... ok
 test_SplitsImageInBlocks_UnequallySplittingImage (test_training.TestTrainingData_Creation) ... ok
 test_SplitsImageInBlocks_WithOverlappingBlocks (test_training.TestTrainingData_Creation) ... ok
-test_MarkPixelUsingAdvancedIndexing (test_training.TestTrainingData_Labelling) ... ok
+test_BinaryMaskDecidesIfImageBlockIsSelectedOrNot (test_training.TestTrainingData_Labelling) ... ok
+test_MarkingImagePixelsUsesNumpyBinaryMask_AdvancedIndexing (test_training.TestTrainingData_Labelling) ... ok
 
 ----------------------------------------------------------------------
-Ran 5 tests in 0.208s
+Ran 6 tests in 0.003s
 
-OK (SKIP=1)
+OK (skipped=1)

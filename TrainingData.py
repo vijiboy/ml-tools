@@ -33,14 +33,13 @@ def IsImageBlockSatisfyingSelectionPercentage(Image, SelectionMask, InvertMask=F
     ''' Returns True if SelectionMask (a binary mask) is True for more than 10% of total Image pixels, else returns False. 
 Setting InvertMask=True selects Image pixels where SelectionMask is False ''' 
     if SelectionMask.shape != Image.shape[:2]: #image assumed RGB / 3-plane and Mask assumed Gray Scale i.e. single plane
-        raise ValueError("Invalid Argument: SelectionMask shape/size {} should be same as Image {}".format(SelectionMask.shape, Image.shape[:2]))
+        raise ValueError("Invalid Argument: SelectionMask shape/size {} should be same as Image {}"
+                         .format(SelectionMask.shape, Image.shape[:2]))
+    TotalPixels = reduce(lambda x,y: x*y, Image.shape[:2]) # Find Image Width*Height
     AllowedPixels = SelectedPixels = np.count_nonzero(SelectionMask)
-    if InvertMask : 
-        AllowedPixels = len(SelectionMask) - SelectedPixels
-    AllowedPixelsPercent = int(round(AllowedPixels * 1.0 / len(SelectionMask)))
-    return AllowedPixelsPercent >= SelectionPercentage # 
-
-    
+    if InvertMask : AllowedPixels = TotalPixels - SelectedPixels
+    AllowedPixelsPercent = int(round(AllowedPixels * 100.0 / TotalPixels))
+    return AllowedPixelsPercent >= SelectionPercentage 
 
 
 def CreateImageFromBlocks(ImageBlocks, BlankImage, BlockWidth=10, BlockHeight=10,
