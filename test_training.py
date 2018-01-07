@@ -12,7 +12,6 @@ log.basicConfig() # by default only log messages for error and critical conditio
 import TrainingData as data
 
 class TestTrainingData_Creation(unittest.TestCase):
-
     def test_SplitsImageInBlocks_PerfectSplittingImage(self):
         # split image (filepath) into blocks
         original_image = data.loadImageFromFile('test/EquallySplitting_Image.png')
@@ -54,7 +53,6 @@ class TestTrainingData_Creation(unittest.TestCase):
     
 
 class TestTrainingData_Labelling(unittest.TestCase):
-
     def test_MarkingImagePixelsUsesNumpyBinaryMask_AdvancedIndexing(self):
         # Create an 'RGB' image of size 3X3
         imgArray = np.arange(0,48,1)
@@ -69,6 +67,7 @@ class TestTrainingData_Labelling(unittest.TestCase):
 
     def test_BinaryMaskDecidesIfImageBlockIsSelectedOrNot(self):
         image = data.loadImageFromFile('test/EquallySplitting_Image.png')
+        image = data.loadImageFromFile('test/MaskImageAllGreen.png')
         binaryMask = np.ndarray(image.shape[:2], dtype = np.bool) 
         # Enable Complete Mask (False). masking all pixels, marking none.
         binaryMask[:] = False 
@@ -89,5 +88,13 @@ class TestTrainingData_Labelling(unittest.TestCase):
         self.assertTrue(data.IsImageBlockSatisfyingSelectionPercentage
                         (image, SelectionMask=binaryMask))
 
-        #binaryMask[0:10,10:20] = True # mark (unmask) block whose rows are 0 to 10 and cols are 10:20
-        
+    def test_ConvertsImageToBinaryMaskForGivenColor(self):
+        maskImageGreen = data.loadImageFromFile('test/MaskImageAllGreen.png')
+        hexColorGreen = data.rgb_to_hex((0,255,0))
+        greenLabelPixels = data.getMaskFromImage(maskImageGreen, hexColorGreen)
+        self.assertEqual(len(greenLabelPixels.flat), len(maskImageGreen.flat))
+        self.assertTrue((greenLabelPixels==True).all())
+
+        # As of now only supports single mask color in single mask image
+        with self.assertRaises(ValueError):
+            blueLabelPixels = data.getMaskFromImage(maskImageGreen, '#0000ff')

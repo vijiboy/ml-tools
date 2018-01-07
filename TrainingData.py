@@ -7,8 +7,7 @@ def SplitImageinBlocksByShifting(Image,
                                  OverlapHorizontal=0, OverlapVertical=0):
     ''' Splits an image into blocks of size BlockWidth X BlockHeight pixels, 
 blocks are created by traversing first from left to right and then top to bottom,
-shifting by HorizontalShift pixels and VerticalShift pixels respectively 
-'''
+shifting by HorizontalShift pixels and VerticalShift pixels respectively '''
     if OverlapHorizontal >= BlockWidth or OverlapVertical >= BlockHeight:
         raise ValueError("Invalid Argument: Vertical and/or Horizontal Overlap Values." 
                          " Ensure Overlaps are more than Block Height/Width ")
@@ -41,22 +40,20 @@ Setting InvertMask=True selects Image pixels where SelectionMask is False '''
     AllowedPixelsPercent = int(round(AllowedPixels * 100.0 / TotalPixels))
     return AllowedPixelsPercent >= SelectionPercentage 
 
-
 def CreateImageFromBlocks(ImageBlocks, BlankImage, BlockWidth=10, BlockHeight=10,
                           OverlapHorizontal=0, OverlapVertical=0):
     ''' Utility to recreate image inside BlankImage from ImageBlocks by joining them. 
-
  Note: BlankImage must be sufficiently large enough to hold ImageBlocks'''
     row = 0
     for imageBlocksInRow in ImageBlocks:
         col = 0
         for thisImageBlock in imageBlocksInRow:
-            log.debug('copying imageBlock:{0} to BlankImage:{1} at row,col:{2},{3}'.format(thisImageBlock.shape, BlankImage.shape, row,col))
+            log.debug('copying imageBlock:{0} to BlankImage:{1} at row,col:{2},{3}'.
+                     format(thisImageBlock.shape, BlankImage.shape, row,col))
             BlankImage[row:row+BlockHeight, col:col+BlockWidth] = thisImageBlock
             col = col + BlockWidth - OverlapHorizontal
         row = row + BlockHeight - OverlapVertical
     return BlankImage
-    
     
 def ImageBlocksIterator(ImageBlocks):
     '''Iterator returning next image block from the sequence created by 
@@ -74,3 +71,21 @@ def loadImageFromFile(Filename):
     if image is None:
         raise ValueError('Invalid imagePath: image not found "{}"'.format(imagePath))
     return image
+
+def getMaskFromImage(maskImage, hexColor='#00ff00'):
+    ''' gets binary Mask from an rgb image using hexColor (default green) '''
+    mask = (maskImage == np.asarray(hex_to_rgb(hexColor)))
+    if (mask==False).any():
+        raise ValueError('Error processing maskImage: maskImage has colors other '
+                         'than hexColor - {}'.format(hexColor))
+    return mask
+
+def hex_to_rgb(value):
+    ''' convert color in hexadecimal triplet back to its rgb triplet '''
+    value = value.lstrip('#')
+    lv = len(value)
+    return tuple(int(value[i:i + lv // 3], 16) for i in range(0, lv, lv // 3))
+
+def rgb_to_hex(rgb):
+    ''' convert an rgb color (RGB triplet) to hexadecimal format (hex triplet) string '''
+    return '#%02x%02x%02x' % rgb
