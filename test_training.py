@@ -48,9 +48,8 @@ class TestTrainingData_Creation(unittest.TestCase):
 
     @unittest.skip("TODO: Design: group imageBlocks and Block(Width/Height), (Horizontal/Vertical) Shift")
     def test_ImageBlocksStoreWidthHeightAndOverlap(self):
-        self.assertTrue(False)
+        pass
 
-    
 
 class TestTrainingData_Labelling(unittest.TestCase):
     def test_MarkingImagePixelsUsesNumpyBinaryMask_AdvancedIndexing(self):
@@ -88,13 +87,36 @@ class TestTrainingData_Labelling(unittest.TestCase):
         self.assertTrue(data.IsImageBlockSatisfyingSelectionPercentage
                         (image, SelectionMask=binaryMask))
 
-    def test_ConvertsImageToBinaryMaskForGivenColor(self):
+    def test_UtilityToGetBinaryMaskFromImage(self):
         maskImageGreen = data.loadImageFromFile('test/MaskImageAllGreen.png')
-        hexColorGreen = data.rgb_to_hex((0,255,0))
-        greenLabelPixels = data.getMaskFromImage(maskImageGreen, hexColorGreen)
-        self.assertEqual(len(greenLabelPixels.flat), len(maskImageGreen.flat))
-        self.assertTrue((greenLabelPixels==True).all())
 
-        # As of now only supports single mask color in single mask image
-        with self.assertRaises(ValueError):
-            blueLabelPixels = data.getMaskFromImage(maskImageGreen, '#0000ff')
+        hexColorGreen = data.rgb_to_hex((0,255,0))
+        greenLabel = data.getBinaryMaskFromColorCodedImage(maskImageGreen, hexColorGreen)
+        self.assertEqual(greenLabel.shape, maskImageGreen.shape[:2])
+        self.assertTrue((greenLabel==True).all())
+
+        maskImageGreen10 = data.loadImageFromFile('test/MaskImageGreen10.png')
+        greenLabel10= data.getBinaryMaskFromColorCodedImage(maskImageGreen10, hexColorGreen)
+        self.assertTrue(data.IsImageBlockSatisfyingSelectionPercentage(maskImageGreen10, greenLabel10, False, SelectionPercentage = 10))
+
+        blueLabel = data.getBinaryMaskFromColorCodedImage(maskImageGreen10, '#0000ff')
+        self.assertTrue((blueLabel==False).all())
+
+    def test_ImageSplitting_Using_BinaryMaskAsLabel(self):
+        inputImage = data.loadImageFromFile('test/ObjectInTopLeft.png')
+        maskImageTopLeft = data.loadImageFromFile('test/MaskImageGreen10.png')
+        greenLabel = data.getBinaryMaskFromColorCodedImage(maskImageTopLeft)
+        self.assertEqual(inputImage.shape[:2], greenLabel.shape) # ensure both image and mask are same width and height
+        # Image splitting: split both image and block 
+        imageBlocks = data.SplitImageinBlocksByShifting(inputImage)
+        maskBlocks = data.SplitImageinBlocksByShifting(greenLabel)
+
+        selectedBlocks = []
+        for iBlock, mBlock in zip(data.ImageBlocksIterator(imageBlocks),
+                                  data.ImageBlocksIterator(maskBlocks)):
+            IsSelected = data.IsImageBlockSatisfyingSelectionPercentage(iBlock,mBlock)
+            if IsSelected: selectedBlocks.append(iBlock)
+            log.debug('imageBlock({}) satisfies maskBlock({}) selection: {}'.
+                      format(iBlock.shape, mBlock.shape, IsSelected))
+        self.assertEqual(len(selectedBlocks), 1) # there should be only one selected block here
+

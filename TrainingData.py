@@ -69,16 +69,19 @@ SplitImageinBlocksByShifting() in order from topleft block to bottomright'''
 def loadImageFromFile(Filename):
     image =  cv2.imread(Filename) # load as is
     if image is None:
-        raise ValueError('Invalid imagePath: image not found "{}"'.format(imagePath))
+        raise ValueError('Invalid imagePath: image not found "{}"'.format(Filename))
     return image
 
-def getMaskFromImage(maskImage, hexColor='#00ff00'):
+def getBinaryMaskFromColorCodedImage(maskImage, hexColor='#00ff00'):
     ''' gets binary Mask from an rgb image using hexColor (default green) '''
-    mask = (maskImage == np.asarray(hex_to_rgb(hexColor)))
-    if (mask==False).any():
-        raise ValueError('Error processing maskImage: maskImage has colors other '
-                         'than hexColor - {}'.format(hexColor))
-    return mask
+    if len(maskImage.shape) != 3: raise ValueError('Expected rgb numpy array')
+    imgRows,imgCols,imgChannels = maskImage.shape;
+    rgbPixelsDiff = (maskImage == np.asarray(hex_to_rgb(hexColor)))
+    rgbPixelsDiff.shape = (imgRows*imgCols, imgChannels) # flatten for easy iteration & query
+    diffListTrueAll = [True if ((rgbDiff == True).all()) else False for rgbDiff in rgbPixelsDiff]
+    maskTrueAll = np.asarray(diffListTrueAll)
+    maskTrueAll.shape = imgRows, imgCols # binary mask is like a gray image with binary values
+    return maskTrueAll
 
 def hex_to_rgb(value):
     ''' convert color in hexadecimal triplet back to its rgb triplet '''
