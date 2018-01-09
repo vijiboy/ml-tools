@@ -28,10 +28,13 @@ shifting by HorizontalShift pixels and VerticalShift pixels respectively '''
         row = row + BlockHeight - OverlapVertical
     return imageBlocks
 
-def IsImageBlockSatisfyingSelectionPercentage(Image, SelectionMask, InvertMask=False, SelectionPercentage = 10):
-    ''' Returns True if SelectionMask (a binary mask) is True for more than 10% of total Image pixels, else returns False. 
-Setting InvertMask=True selects Image pixels where SelectionMask is False ''' 
-    if SelectionMask.shape != Image.shape[:2]: #image assumed RGB / 3-plane and Mask assumed Gray Scale i.e. single plane
+def IsImageBlockSatisfyingSelectionPercentage(
+        Image, SelectionMask, InvertMask=False, SelectionPercentage = 10):
+    ''' Returns True if SelectionMask (a binary mask) is True for more than 10% 
+    of total Image pixels, else returns False. 
+    Setting InvertMask=True selects Image pixels where SelectionMask is False ''' 
+    #image assumed RGB / 3-plane and Mask assumed Gray Scale i.e. single plane
+    if SelectionMask.shape != Image.shape[:2]: 
         raise ValueError("Invalid Argument: SelectionMask shape/size {} should be same as Image {}"
                          .format(SelectionMask.shape, Image.shape[:2]))
     TotalPixels = reduce(lambda x,y: x*y, Image.shape[:2]) # Find Image Width*Height
@@ -55,7 +58,7 @@ def CreateImageFromBlocks(ImageBlocks, BlankImage, BlockWidth=10, BlockHeight=10
         row = row + BlockHeight - OverlapVertical
     return BlankImage
     
-def ImageBlocksIterator(ImageBlocks):
+def iterateImageBlocks(ImageBlocks):
     '''Iterator returning next image block from the sequence created by 
 SplitImageinBlocksByShifting() in order from topleft block to bottomright'''
     if ImageBlocks is None: raise ValueError("argument empty: ImageBlocks")
@@ -92,3 +95,18 @@ def hex_to_rgb(value):
 def rgb_to_hex(rgb):
     ''' convert an rgb color (RGB triplet) to hexadecimal format (hex triplet) string '''
     return '#%02x%02x%02x' % rgb
+
+def iterateImageBlocksBasedOnMask(imageBlocksIterator, maskBlocksIterator, selectionPercentage=10):
+    ''' iterate image blocks selected by mask blocks satisfying selection percentage '''
+    for iBlock, mBlock in zip(imageBlocksIterator, maskBlocksIterator):
+        if IsImageBlockSatisfyingSelectionPercentage(iBlock, mBlock, False, selectionPercentage):
+            IsSelected = True
+        else: IsSelected = False
+        
+        log.debug('Image Block ({}); maskBlock ({}); Selected: {}'.
+                    format(iBlock.shape, mBlock.shape, IsSelected))
+
+        if IsSelected:
+            yield iBlock
+
+

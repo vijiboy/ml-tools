@@ -16,7 +16,7 @@ class TestTrainingData_Creation(unittest.TestCase):
         # split image (filepath) into blocks
         original_image = data.loadImageFromFile('test/EquallySplitting_Image.png')
         imageBlocks = data.SplitImageinBlocksByShifting(original_image)
-        totalBlocks = sum(1 for block in data.ImageBlocksIterator(imageBlocks))
+        totalBlocks = sum(1 for block in data.iterateImageBlocks(imageBlocks))
         self.assertEqual(totalBlocks, 4)
         # assert split operation by joining image blocks and comparing to original image
         blankOriginalImage = np.zeros_like(original_image)
@@ -27,7 +27,7 @@ class TestTrainingData_Creation(unittest.TestCase):
         # split image (filepath) into blocks
         original_image = data.loadImageFromFile('test/UnequallySplitting_Image.png')
         imageBlocks = data.SplitImageinBlocksByShifting(original_image)
-        totalBlocks = sum(1 for block in data.ImageBlocksIterator(imageBlocks))
+        totalBlocks = sum(1 for block in data.iterateImageBlocks(imageBlocks))
         self.assertEqual(totalBlocks, 9)
         # assert split operation by joining image blocks and comparing to original image
         blankOriginalImage = np.zeros_like(original_image)
@@ -39,7 +39,7 @@ class TestTrainingData_Creation(unittest.TestCase):
         imageBlocks = data.SplitImageinBlocksByShifting(original_image,
                                       BlockWidth=10, BlockHeight=10,
                                       OverlapHorizontal=1, OverlapVertical=1)
-        totalBlocks = sum(1 for block in data.ImageBlocksIterator(imageBlocks))
+        totalBlocks = sum(1 for block in data.iterateImageBlocks(imageBlocks))
         self.assertEqual (totalBlocks, 9)
         # assert split operation by joining image blocks and comparing to original image
         blankOriginalImage = np.zeros_like(original_image)
@@ -107,16 +107,45 @@ class TestTrainingData_Labelling(unittest.TestCase):
         maskImageTopLeft = data.loadImageFromFile('test/MaskImageGreen10.png')
         greenLabel = data.getBinaryMaskFromColorCodedImage(maskImageTopLeft)
         self.assertEqual(inputImage.shape[:2], greenLabel.shape) # ensure both image and mask are same width and height
-        # Image splitting: split both image and block 
-        imageBlocks = data.SplitImageinBlocksByShifting(inputImage)
-        maskBlocks = data.SplitImageinBlocksByShifting(greenLabel)
+
+        # get blocks: split both image and block 
+        imageBlocksStructure = data.SplitImageinBlocksByShifting(inputImage)
+        maskBlocksStructure = data.SplitImageinBlocksByShifting(greenLabel)
+        imageBlocks = data.iterateImageBlocks(imageBlocksStructure)
+        maskBlocks = data.iterateImageBlocks(maskBlocksStructure)
 
         selectedBlocks = []
-        for iBlock, mBlock in zip(data.ImageBlocksIterator(imageBlocks),
-                                  data.ImageBlocksIterator(maskBlocks)):
-            IsSelected = data.IsImageBlockSatisfyingSelectionPercentage(iBlock,mBlock)
-            if IsSelected: selectedBlocks.append(iBlock)
-            log.debug('imageBlock({}) satisfies maskBlock({}) selection: {}'.
-                      format(iBlock.shape, mBlock.shape, IsSelected))
-        self.assertEqual(len(selectedBlocks), 1) # there should be only one selected block here
+        for iBlock in data.iterateImageBlocksBasedOnMask(imageBlocks,
+                                                         maskBlocks):
+            selectedBlocks.append(iBlock)
+
+        # there should be only one selected block here
+        self.assertEqual(len(selectedBlocks), 1) 
+
+    def test_ImageSplittingWithOverlaps_WithBinaryMaskLabelling(self):
+        inputImage = data.loadImageFromFile('test/ObjectInTopLeft.png')
+        maskImageTopLeft = data.loadImageFromFile('test/MaskImageGreen10.png')
+        greenLabel = data.getBinaryMaskFromColorCodedImage(maskImageTopLeft)
+
+        # get blocks: split both image and block with overlaps
+        imageBlocksStructure = data.SplitImageinBlocksByShifting(
+            inputImage, OverlapHorizontal=2, OverlapVertical=2)
+        maskBlocksStructure = data.SplitImageinBlocksByShifting(
+            greenLabel, OverlapHorizontal=2, OverlapVertical=2)
+        imageBlocks = data.iterateImageBlocks(imageBlocksStructure)
+        maskBlocks = data.iterateImageBlocks(maskBlocksStructure)
+
+        # check image reconstruction from overlapped blocks
+        blankOriginalImage = np.zeros_like(inputImage)
+        recreatedImage = data.CreateImageFromBlocks(
+            imageBlocksStructure, blankOriginalImage,
+            OverlapHorizontal=2, OverlapVertical=2)
+        self.assertTrue(np.array_equal(inputImage, recreatedImage))
+
+        # get selected blocks
+        selectedBlocks = []
+        for iBlock in data.iterateImageBlocksBasedOnMask(imageBlocks,
+                                                         maskBlocks):
+            selectedBlocks.append(iBlock)
+        self.assertEqual(len(selectedBlocks), 4)
 
