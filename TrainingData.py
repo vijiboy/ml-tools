@@ -2,12 +2,15 @@ import cv2
 import numpy as np
 import logging as log
 
-def SplitImageinBlocksByShifting(Image,
-                                 BlockWidth=10, BlockHeight=10, 
-                                 OverlapHorizontal=0, OverlapVertical=0):
+from collections import namedtuple
+SplittingBlock = namedtuple('SplittingBlock','blockWidth, blockHeight, OverlapHorizontal, OverlapVertical')
+
+def SplitImageinBlocksByShifting(Image, SplitBlock):
     ''' Splits an image into blocks of size BlockWidth X BlockHeight pixels, 
-blocks are created by traversing first from left to right and then top to bottom,
-shifting by HorizontalShift pixels and VerticalShift pixels respectively '''
+blocks are created by traversing first from left to right and then top to bottom '''
+    if not SplitBlock  or type(SplitBlock) != SplittingBlock:
+        raise ValueError("Error: Invalid Argument - SplitBlock")
+    BlockWidth, BlockHeight, OverlapHorizontal, OverlapVertical = SplitBlock
     if OverlapHorizontal >= BlockWidth or OverlapVertical >= BlockHeight:
         raise ValueError("Invalid Argument: Vertical and/or Horizontal Overlap Values." 
                          " Ensure Overlaps are more than Block Height/Width ")
@@ -43,10 +46,10 @@ def IsImageBlockSatisfyingSelectionPercentage(
     AllowedPixelsPercent = int(round(AllowedPixels * 100.0 / TotalPixels))
     return AllowedPixelsPercent >= SelectionPercentage 
 
-def CreateImageFromBlocks(ImageBlocks, BlankImage, BlockWidth=10, BlockHeight=10,
-                          OverlapHorizontal=0, OverlapVertical=0):
+def CreateImageFromBlocks(ImageBlocks, BlankImage, SplitBlock):
     ''' Utility to recreate image inside BlankImage from ImageBlocks by joining them. 
  Note: BlankImage must be sufficiently large enough to hold ImageBlocks'''
+    BlockWidth, BlockHeight, OverlapHorizontal, OverlapVertical = SplitBlock
     row = 0
     for imageBlocksInRow in ImageBlocks:
         col = 0
