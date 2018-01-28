@@ -5,13 +5,15 @@ import logging as log
 import cv2
 import numpy as np
 
+import os
+
 log.basicConfig() # by default only log messages for error and critical conditions
-#log.getLogger().setLevel(log.INFO) # uncomment for more verbose log messages
+log.getLogger().setLevel(log.INFO) # uncomment for more verbose log messages
 #log.getLogger().setLevel(log.DEBUG) # uncomment for even more verbose log messages
 
 import TrainingData as data
 
-class TestTrainingData_Creation(unittest.TestCase):
+class Test_TrainingData_Creation(unittest.TestCase):
     def test_SplitsImageInBlocks_PerfectSplittingImage(self):
         # split image (filepath) into blocks
         original_image = data.loadImageFromFile('test/EquallySplitting_Image.png')
@@ -58,7 +60,7 @@ class TestTrainingData_Creation(unittest.TestCase):
         pass
 
 
-class TestTrainingData_Labelling(unittest.TestCase):
+class Test_TrainingData_Labelling(unittest.TestCase):
     def test_MarkingImagePixelsUsesNumpyBinaryMask_AdvancedIndexing(self):
         # Create an 'RGB' image of size 3X3
         imgArray = np.arange(0,48,1)
@@ -157,3 +159,50 @@ class TestTrainingData_Labelling(unittest.TestCase):
             selectedBlocks.append(iBlock)
         self.assertEqual(len(selectedBlocks), 4)
 
+class Test_Training(unittest.TestCase):
+    def test_FetchFiles(self):
+        inputPath = os.path.join(os.curdir, 'input', 'train', 'grass')
+        grassPath = os.path.join(inputPath, '1_Grass')
+        nograssPath = os.path.join(inputPath, '0_NotGrass')
+        MaskFolderPath = os.path.join(os.curdir, 'input', 'masks', 'grass')
+        DetectImagePath = os.path.join(os.curdir, 'input', 'detect', 'grass')
+        grassFiles =  [f for f in os.listdir(grassPath)
+                    if os.path.isfile(os.path.join(grassPath,f)) ] 
+        nograssFiles =  [f for f in os.listdir(nograssPath)
+                    if os.path.isfile(os.path.join(nograssPath,f)) ] 
+        log.debug(grassFiles)
+        log.debug(nograssFiles)
+        
+        svm_params = dict( kernel_type = cv2.SVM_LINEAR,
+                            svm_type = cv2.SVM_C_SVC)
+
+        trainingData = None
+        blockWidth, blockHeight = 30,30
+        splittingBlock = data.SplittingBlock(blockWidth, blockHeight,
+                                             OverlapHorizontal=0, OverlapVertical=0)
+        for imgName in grassFiles[:1]:
+            imgFileName = os.path.join(grassPath, imgName)
+            if not os.path.isfile(imgFileName):
+                log.warning("Training: File not found: {}".format(imgFileName))
+                continue
+
+            img = cv2.imread(imgFileName,0) # data = grayscale pixel values
+            if img is None:
+                log.warning("Training: Unable to load Image {}".format(imgFileName))
+                continue
+
+            log.info('loaded image: {}; shape: {}'.format(imgFileName, img.shape))
+            imgBlockStructure = data.SplitImageinBlocksByShifting(img,splittingBlock)
+            imgBlockStack = ([np.array(imgBlock.flatten())
+                                            for imgBlock in data.iterateImageBlocks(imgBlockStructure)
+                              if imgBlock.size == blockWidth*blockHeight])
+            log.info('imgBlockStack: {}'.format(len(imgBlockStack)))
+            if trainingData is None: trainingData = imgBlockStack
+            else: trainingData = np.concatenate(trainingData,imgBlockStack)
+            
+                
+
+
+            
+        
+        
