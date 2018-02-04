@@ -64,7 +64,6 @@ def loadImageFromFile(Filename):
         raise ValueError('Invalid imagePath: image not found "{}"'.format(Filename))
     return image
 
-
 def ImageStructureCreateFromFolder(FolderPath, relativepaths=False):
     '''Creates ImageStructure, a dictionary matching the structure of FolderPath containing sub-folders as dictionaries and images as key/value pairs '''
     if not os.path.isdir(FolderPath):
@@ -94,7 +93,7 @@ def ImageStructureApplyFunc(ImageStructure, ImageProcessingFunc, UseKey=False):
     return ImageStructure
 
 def getFlattenedStructure(ImageStructure, flatStructure=None):
-    ''' returns flat structure of images as key/value pairs 
+    ''' creates or updates new flat structure of images as key/value pairs 
 where key is image path and value is image array '''
     if flatStructure is None: flatStructure = dict()
     elif type(flatStructure) is not dict:

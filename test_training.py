@@ -16,25 +16,28 @@ import Training
 
 
 class Test_Training(unittest.TestCase):
-    def test_CreateImageStructureFromFolders(self):
-        inputPath = os.path.join(os.curdir, 'input', 'train', 'grass')
+    def test_CreateImageStructureFromFolders_AndApplyFunctionsOnThem(self):
+        inputPath = os.path.join(os.path.abspath(os.curdir), 'input', 'train', 'grass')
+        # load file names only without loading actual images
         imageStructure = Imaging.ImageStructureCreateFromFolder(inputPath)
+        self.assertTrue(v is None for k,v in
+                        Imaging.getFlattenedStructure(imageStructure))
+        # load images by applying load image function to all image file names 
         imageStructure = Imaging.ImageStructureApplyFunc(imageStructure, Imaging.loadImageFromFile, UseKey = True)
-        imageStructure = Imaging.ImageStructureApplyFunc(imageStructure, np.shape)
-        self.assertGreaterEqual(len(Imaging.getFlattenedStructure(imageStructure)), 1)
+        # use flat structure to iterate all images when required
         self.assertTrue(all(Imaging.getFlattenedStructure(imageStructure)))
 
-    def test_LoadImageArrayIntoImageStructure(self):
+    def test_PrepareTrainingDataUsingImageStructure(self):
         inputPath = os.path.join(os.path.abspath(os.curdir), 'input', 'train', 'grass')
-        grassPath = os.path.join(inputPath, '1_Grass')
-        trainingData = Training.getTrainingDataFromFolder(grassPath)
-        self.assertEqual((1221,900),trainingData.shape)
+        trainingData, labelData, labels = Training.prepareTrainingDataFromImageStrucuture(inputPath)
+        self.assertEqual((2779,900),trainingData.shape)
+        log.info('labelData {}: {}'.format(labelData.shape,labelData))
+        log.info('labels: {}'.format(labels))
         
-
-            
-                
-
-
-            
-        
+    def test_TrainTheSVM(self):
+        inputPath = os.path.join(os.path.abspath(os.curdir), 'input', 'train', 'grass')
+        trainingData, labelData, labels = Training.prepareTrainingDataFromImageStrucuture(inputPath)
+        log.info('trainingData {1} :\n {0}, datatype: {2}'.format(trainingData, trainingData.shape, trainingData.dtype))
+        Training.TrainNSaveSVM(trainingData, labelData)
+        pass
         
