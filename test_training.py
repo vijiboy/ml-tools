@@ -18,10 +18,11 @@ import Training
 class Test_Training(unittest.TestCase):
     def test_CreateImageStructureFromFolders(self):
         inputPath = os.path.join(os.curdir, 'input', 'train', 'grass')
-        imageStructure = Imaging.createImageStructureFromFolder(inputPath)
-        imageStructure = Imaging.LoadArrayInImageStructure(imageStructure)
-        #for key in imagesStructure: print key, imagesStructure[key], '\n'
-        #self.assertEqual(len(imagesStructure), 3)
+        imageStructure = Imaging.ImageStructureCreateFromFolder(inputPath)
+        imageStructure = Imaging.ImageStructureApplyFunc(imageStructure, Imaging.loadImageFromFile, UseKey = True)
+        imageStructure = Imaging.ImageStructureApplyFunc(imageStructure, np.shape)
+        self.assertGreaterEqual(len(Imaging.getFlattenedStructure(imageStructure)), 1)
+        self.assertTrue(all(Imaging.getFlattenedStructure(imageStructure)))
 
     def test_LoadImageArrayIntoImageStructure(self):
         inputPath = os.path.join(os.path.abspath(os.curdir), 'input', 'train', 'grass')

@@ -65,8 +65,8 @@ def loadImageFromFile(Filename):
     return image
 
 
-def createImageStructureFromFolder(FolderPath, relativepaths=False):
-    ''' Creates a dictionary matching the structure of folder FolderPath '''
+def ImageStructureCreateFromFolder(FolderPath, relativepaths=False):
+    '''Creates ImageStructure, a dictionary matching the structure of FolderPath containing sub-folders as dictionaries and images as key/value pairs '''
     if not os.path.isdir(FolderPath):
         raise ValueError("Invalid Argument: FolderPath - '{}'."
                          " Path invalid or not a folder.".format(FolderPath))
@@ -78,9 +78,35 @@ def createImageStructureFromFolder(FolderPath, relativepaths=False):
             keyName = fileName if relativepaths else os.path.join(root,fileName)
             folderDict[root][keyName] = None
         folderDict = folderDict[root]
-    log.info('ImageStructure: {}'.format(imageStructure))
+    log.debug('ImageStructure: {}'.format(imageStructure))
     return imageStructure
-            
 
-def LoadArrayInImageStructure(ImageStructure):
-   return ImageStructure
+def ImageStructureApplyFunc(ImageStructure, ImageProcessingFunc, UseKey=False):
+    ''' Applies a function to each image in the ImageStructure inplace '''
+    for key,value in ImageStructure.viewitems(): # could just use keys
+        if type(ImageStructure[key]) is not dict:
+            input = key if UseKey else value
+            newValue = ImageProcessingFunc(input)
+            ImageStructure[key] = newValue
+            log.debug('Applied ImageProcessingFunc() to {} new value= {}.'.format(input, newValue))
+        else:
+            ImageStructureApplyFunc(ImageStructure[key], ImageProcessingFunc, UseKey)
+    return ImageStructure
+
+def getFlattenedStructure(ImageStructure, flatStructure=None):
+    ''' returns flat structure of images as key/value pairs 
+where key is image path and value is image array '''
+    if flatStructure is None: flatStructure = dict()
+    elif type(flatStructure) is not dict:
+        raise ValueError('Invalid Argument: flatStructure. Should be dict')
+
+    for key,value in ImageStructure.viewitems(): # could just use keys
+        if type(ImageStructure[key]) is not dict:
+            flatStructure[key] = ImageStructure[key]
+        else:
+            getFlattenedStructure(ImageStructure[key], flatStructure)
+
+    log.debug(flatStructure)
+    return flatStructure
+
+    
