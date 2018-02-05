@@ -20,21 +20,9 @@ test_TrainTheSVM (test_training.Test_Training) ... INFO:root:trainingData (2779,
  [  92.   92.   93. ...,  128.  128.  128.]
  [ 103.  103.  104. ...,    0.    0.    0.]
  [ 113.  112.  109. ...,    0.    0.    0.]], datatype: float64
-OpenCV Error: Bad argument (train data must be floating-point matrix) in cvCheckTrainData, file /home/travis/miniconda/conda-bld/work/opencv-2.4.11/modules/ml/src/inner_functions.cpp, line 857
-ERROR
-
-======================================================================
-ERROR: test_TrainTheSVM (test_training.Test_Training)
-----------------------------------------------------------------------
-Traceback (most recent call last):
-  File "test_training.py", line 41, in test_TrainTheSVM
-    Training.TrainNSaveSVM(trainingData, labelData)
-  File "Training.py", line 60, in TrainNSaveSVM
-    svm.train(TrainingData,LabelData,params=svm_params)
-error: /home/travis/miniconda/conda-bld/work/opencv-2.4.11/modules/ml/src/inner_functions.cpp:857: error: (-5) train data must be floating-point matrix in function cvCheckTrainData
-
+ok
 
 ----------------------------------------------------------------------
-Ran 12 tests in 1.029s
+Ran 12 tests in 2.638s
 
-FAILED (errors=1, skipped=1)
+OK (skipped=1)
