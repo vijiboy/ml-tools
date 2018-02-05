@@ -38,6 +38,5 @@ class Test_Training(unittest.TestCase):
         inputPath = os.path.join(os.path.abspath(os.curdir), 'input', 'train', 'grass')
         trainingData, labelData, labels = Training.prepareTrainingDataFromImageStrucuture(inputPath)
         log.info('trainingData {1} :\n {0}, datatype: {2}'.format(trainingData, trainingData.shape, trainingData.dtype))
-        Training.TrainNSaveSVM(trainingData, labelData)
-        pass
+        Training.TrainNSaveSVM(np.float32(trainingData), np.float32(labelData))
         
