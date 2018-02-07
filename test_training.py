@@ -40,3 +40,8 @@ class Test_Training(unittest.TestCase):
         log.info('trainingData {1} :\n {0}, datatype: {2}'.format(trainingData, trainingData.shape, trainingData.dtype))
         Training.TrainNSaveSVM(np.float32(trainingData), np.float32(labelData))
         
+    def test_DetectUsingSVM(self):
+        inputPath = os.path.join(os.path.abspath(os.curdir), 'input', 'train', 'grass')
+        trainingData, labelData, labels = Training.prepareTrainingDataFromImageStrucuture(inputPath)
+        Training.LoadNDetectSVM(None,None)
+

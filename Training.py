@@ -53,9 +53,14 @@ def prepareTrainingDataFromImageStrucuture(FolderPath):
     log.debug('trainData.shape {}'.format(trainingData.shape))
     return (trainingData, labelData, labels)
 
-def TrainNSaveSVM(TrainingData, LabelData):
+def TrainNSaveSVM(TrainingData, LabelData, SvmDataFileName='svm_data.dat'):
+    ''' trains and saves SVM.DAT file to be reused for detection '''
     svm_params = dict( kernel_type = cv2.SVM_LINEAR,
                         svm_type = cv2.SVM_C_SVC)
     svm = cv2.SVM()
     svm.train(TrainingData,LabelData,params=svm_params)
-    svm.save('svm_data.dat') 
+    if SvmDataFileName: # if not None save
+        svm.save(SvmDataFileName) 
+
+def LoadNDetectSVM(SvmDataPath, FolderPath):
+    pass
