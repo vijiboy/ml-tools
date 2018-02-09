@@ -35,13 +35,20 @@ class Test_Training(unittest.TestCase):
         log.info('labels: {}'.format(labels))
         
     def test_TrainTheSVM(self):
-        inputPath = os.path.join(os.path.abspath(os.curdir), 'input', 'train', 'grass')
-        trainingData, labelData, labels = Training.prepareTrainingDataFromImageStrucuture(inputPath)
+        trainFolder = os.path.join(os.path.abspath(os.curdir), 'input', 'train', 'grass')
+        trainingData, labelData, labels = Training.prepareTrainingDataFromImageStrucuture(trainFolder)
         log.info('trainingData {1} :\n {0}, datatype: {2}'.format(trainingData, trainingData.shape, trainingData.dtype))
         Training.TrainNSaveSVM(np.float32(trainingData), np.float32(labelData))
         
     def test_DetectUsingSVM(self):
-        inputPath = os.path.join(os.path.abspath(os.curdir), 'input', 'train', 'grass')
-        trainingData, labelData, labels = Training.prepareTrainingDataFromImageStrucuture(inputPath)
-        Training.LoadNDetectSVM(None,None)
+        trainFolder = os.path.join(os.path.abspath(os.curdir), 'input', 'train', 'grass')
+        trainingData, labelData, labels = Training.prepareTrainingDataFromImageStrucuture(trainFolder)
+        Training.TrainNSaveSVM(np.float32(trainingData), np.float32(labelData), 'svm_test.dat')
+        expected, actual = Training.LoadNDetectSVM('svm_test.dat',trainFolder)
+        mask = expected == actual
+        correct = np.count_nonzero(mask)
+        log.info('Correct Results {} of Total {}.'.format(correct, actual.size))
+        accuracy = correct * 100.0 / actual.size
+        log.info('detection accuracy: {}'.format(accuracy))
+        self.assertGreaterEqual(accuracy, 95.0) # achieve high accuracy
 

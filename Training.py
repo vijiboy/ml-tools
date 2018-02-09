@@ -30,8 +30,9 @@ def prepareTrainingDataFromImageStrucuture(FolderPath):
             imgblock.shape for imgblock
             in Imaging.iterateImageBlocks(imgBlockStructure)))
         # 1. Select blocks of same size,
-        # 2. Flatten them and
-        # 3. Stack them in one array #TODO replace deprecated vstack with stack
+        # 2. Flatten them to 1D matrices
+        # 3. Stack them in one array
+        # TODO replace deprecated vstack with stack
         imgBlockStack = np.vstack(
             [np.array(imgBlock.flatten(), dtype=np.float) for imgBlock
              in Imaging.iterateImageBlocks(imgBlockStructure)
@@ -54,13 +55,28 @@ def prepareTrainingDataFromImageStrucuture(FolderPath):
     return (trainingData, labelData, labels)
 
 def TrainNSaveSVM(TrainingData, LabelData, SvmDataFileName='svm_data.dat'):
-    ''' trains and saves SVM.DAT file to be reused for detection '''
+    ''' Trains and saves SVM into (.dat) file. Pass None in Filename to avoid saving.'''
     svm_params = dict( kernel_type = cv2.SVM_LINEAR,
                         svm_type = cv2.SVM_C_SVC)
     svm = cv2.SVM()
     svm.train(TrainingData,LabelData,params=svm_params)
-    if SvmDataFileName: # if not None save
+    if SvmDataFileName: # if None, do not save
         svm.save(SvmDataFileName) 
 
-def LoadNDetectSVM(SvmDataPath, FolderPath):
-    pass
+def LoadNDetectSVM(SvmDataFileName, FolderPath):
+    ''' Prepare data from Folderpath, use SVM from SvmDataFileName for detection
+Returns actual and detected values for trained classes'''
+    samples, labelValues, labels = prepareTrainingDataFromImageStrucuture(
+        FolderPath)
+    svm = cv2.SVM()
+    log.info("loading SVM .DAT file '{}'...".format(SvmDataFileName))
+    svm.load(SvmDataFileName) 
+    log.info('loaded SVM .DAT file successfully.')
+    detectedValues = svm.predict_all(np.float32(samples)) 
+    # ensure 1-D row matrix
+    detectedValues.shape = 1, detectedValues.size # ensure row matrix
+    labelValues.shape = 1, labelValues.size # ensure row matrix
+    log.info('labelValues{}: {}\n detectedValues{}: {}'
+              .format(labelValues.shape, labelValues,
+                      detectedValues.shape, detectedValues))
+    return labelValues, detectedValues
