@@ -37,8 +37,11 @@ class Test_Training(unittest.TestCase):
     def test_TrainTheSVM(self):
         trainFolder = os.path.join(os.path.abspath(os.curdir), 'input', 'train', 'grass')
         trainingData, labelData, labels = Training.prepareTrainingDataFromImageStrucuture(trainFolder)
-        log.info('trainingData {1} :\n {0}, datatype: {2}'.format(trainingData, trainingData.shape, trainingData.dtype))
+        svmDatFile = 'svm_data.dat'
+        if os.path.isfile(svmDatFile): os.remove(svmDatFile)
+        self.assertFalse(os.path.isfile(svmDatFile))
         Training.TrainNSaveSVM(np.float32(trainingData), np.float32(labelData))
+        self.assertTrue(os.path.isfile(svmDatFile))
         
     def test_DetectUsingSVM(self):
         trainFolder = os.path.join(os.path.abspath(os.curdir), 'input', 'train', 'grass')
