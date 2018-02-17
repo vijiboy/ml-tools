@@ -57,4 +57,28 @@ class Test_ImageSplitting(unittest.TestCase):
     def test_ImageBlocksStoreWidthHeightAndOverlap(self):
         pass
 
+    def test_CreatesImageStructureFromAFolderHierarchy(self):
+        testPath = os.path.join(os.curdir, 'myTest')
+        # create folder 'myTest' with sub-folders and files for test purpose
+        map(data.touch,
+            [os.path.join(testPath,testfile) for testfile in
+             ['f1/11.jpg', 'f1/12.jpg', 'f1/a/a1.jpg',
+              'f2/21.jpg', 'f2/22.jpg', 'f2/b/b1.jpg']])
+        self.assertTrue(os.path.exists(testPath))
+        log.info('testPath ' + testPath)
+        imgStrucuture_relativePaths = data.ImageStructureCreateFromFolder(testPath, relativepaths=True)
+        dict_relativePaths = {'f1': {'11.jpg': None, '12.jpg': None, 'a': {'a1.jpg': None}},
+         'f2': {'21.jpg': None, '22.jpg': None, 'b': {'b1.jpg': None}}}
+        self.assertDictEqual(imgStrucuture_relativePaths, dict_relativePaths)
+
+        imgStrucuture_absolutePaths = data.ImageStructureCreateFromFolder(testPath, relativepaths=False)
+        dict_absolutePaths = {'./myTest/f1': {'./myTest/f1/11.jpg': None,'./myTest/f1/12.jpg': None,
+                         './myTest/f1/a': {'./myTest/f1/a/a1.jpg': None}},
+         './myTest/f2': {'./myTest/f2/21.jpg': None, './myTest/f2/22.jpg': None,
+                         './myTest/f2/b': {'./myTest/f2/b/b1.jpg': None}}}
+        self.assertDictEqual( imgStrucuture_absolutePaths, dict_absolutePaths)
+        
+
+
+
 

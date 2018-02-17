@@ -24,7 +24,7 @@ blocks are created by traversing first from left to right and then top to bottom
         imageBlocksInRow = []
         while col < imageWidth:
             imageBlock = Image[row:row+BlockHeight, col:col+BlockWidth]
-            log.debug('Image Block: At Image Position(x,y):({}, {}); Shape:{}.'.
+            log.debug('Image Block At:({}, {}); Shape:{}.'.
                       format(row,col, imageBlock.shape))
             imageBlocksInRow.append(imageBlock)
             col = col + BlockWidth - OverlapHorizontal
@@ -54,7 +54,7 @@ SplitImageinBlocksByShifting() in order from topleft block to bottomright'''
     linearBlocks = []
     for row, imageBlocksInRow in enumerate(ImageBlocks):
         for col, imageBlock in enumerate(imageBlocksInRow):
-            log.debug('Image Block: At Sequence Location:({}, {}); Shape:{}.'.
+            log.debug('Iterate Image Block: At:({}, {}); Shape:{}.'.
                       format(row,col,imageBlock.shape))
             yield imageBlock
 
@@ -66,18 +66,15 @@ def loadImageFromFile(Filename):
 
 def ImageStructureCreateFromFolder(FolderPath, relativepaths=False):
     '''Creates ImageStructure, a dictionary matching the structure of FolderPath containing sub-folders as dictionaries and images as key/value pairs '''
-    if not os.path.isdir(FolderPath):
-        raise ValueError("Invalid Argument: FolderPath - '{}'."
-                         " Path invalid or not a folder.".format(FolderPath))
     imageStructure = dict()
-    folderDict = imageStructure
     for root, dirs, files in os.walk(FolderPath, topdown=True):
-        folderDict[root] = dict()
         for fileName in files:
             keyName = fileName if relativepaths else os.path.join(root,fileName)
-            folderDict[root][keyName] = None
-        folderDict = folderDict[root]
-    log.debug('ImageStructure: {}'.format(imageStructure))
+            imageStructure[keyName] = None
+        for d in dirs:
+            keyName = d if relativepaths else os.path.join(root,d)
+            imageStructure[keyName] = ImageStructureCreateFromFolder(os.path.join(root,d), relativepaths)
+        break # don't recurse
     return imageStructure
 
 def ImageStructureApplyFunc(ImageStructure, ImageProcessingFunc, UseKey=False):
@@ -104,8 +101,13 @@ where key is image path and value is image array '''
             flatStructure[key] = ImageStructure[key]
         else:
             getFlattenedStructure(ImageStructure[key], flatStructure)
-
-    log.debug(flatStructure)
     return flatStructure
 
     
+def touch(path):
+    basedir = os.path.dirname(path)
+    if not os.path.exists(basedir):
+        os.makedirs(basedir)
+    with open(path,'a'):
+        os.utime(path,None)
+        

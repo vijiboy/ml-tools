@@ -7,16 +7,18 @@ import ImageSplitting as Imaging
 
 def prepareTrainingDataFromImageStrucuture(FolderPath):
     ''' Returns tuple containing trainingData matrix, label matrix, labels dict '''
+    log.debug('Call: prepareTrainingDataFromImageStrucuture()')
     trainingData = None
     labels = dict()
     labelData = []
     imageStructure = Imaging.ImageStructureCreateFromFolder(FolderPath)
     flatStructure = Imaging.getFlattenedStructure(imageStructure).viewitems()
     imageFilenames = [k for k,v in flatStructure]
-    log.debug('imageFilenames: {}'.format(imageFilenames))
+    log.debug('flattened image structure: {}'.format(imageFilenames))
     blockWidth, blockHeight = 30,30
     splittingBlock = Imaging.SplittingBlock(blockWidth, blockHeight,
                                             OverlapHorizontal=0, OverlapVertical=0)
+    log.debug('image splitting: {}'.format(splittingBlock))
     for imgFileName in imageFilenames:
         img = cv2.imread(imgFileName,0) # data = grayscale pixel values
         # changing to float type early for training requirement
@@ -26,9 +28,8 @@ def prepareTrainingDataFromImageStrucuture(FolderPath):
         log.debug('loaded image: {}; shape: {}'.format(imgFileName, img.shape))
         # split image into smaller blocks 
         imgBlockStructure = Imaging.SplitImageinBlocksByShifting(img,splittingBlock)
-        log.debug('imgBlockStructure for image: {}'.format(
-            imgblock.shape for imgblock
-            in Imaging.iterateImageBlocks(imgBlockStructure)))
+        log.debug('image:{}, BlockStructure: {}'.
+                  format(imgFileName, [imgblock.shape for imgblock in Imaging.iterateImageBlocks(imgBlockStructure)]))
         # 1. Select blocks of same size,
         # 2. Flatten them to 1D matrices
         # 3. Stack them in one array
@@ -38,9 +39,14 @@ def prepareTrainingDataFromImageStrucuture(FolderPath):
              in Imaging.iterateImageBlocks(imgBlockStructure)
              if imgBlock.shape == (blockWidth,blockHeight)]
             )
-        log.debug('imgBlockStack for image: {}'.format(len(imgBlockStack)))
+        if imgBlockStack is None or len(imgBlockStack) == 0:
+            continue 
+        log.debug('image:{}, Blocks: stacked: {}, shape:{} '.format(imgFileName, len(imgBlockStack), imgBlockStack[0].shape))
+
+        # append new image blocks to trainingData
         if trainingData is None: trainingData = imgBlockStack
         else: trainingData = np.vstack([trainingData,imgBlockStack])
+
         # create Label for current image using its parent folder name
         parentFolderName = os.path.split(os.path.dirname(imgFileName))[1]
         # expecting folder name as label name in form labelNo_labelText

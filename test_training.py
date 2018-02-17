@@ -30,7 +30,7 @@ class Test_Training(unittest.TestCase):
     def test_PrepareTrainingDataUsingImageStructure(self):
         inputPath = os.path.join(os.path.abspath(os.curdir), 'input', 'train', 'grass')
         trainingData, labelData, labels = Training.prepareTrainingDataFromImageStrucuture(inputPath)
-        self.assertEqual((2779,900),trainingData.shape)
+        self.assertEqual((2393,900),trainingData.shape)
         log.info('labelData {}: {}'.format(labelData.shape,labelData))
         log.info('labels: {}'.format(labels))
         
@@ -53,5 +53,5 @@ class Test_Training(unittest.TestCase):
         log.info('Correct Results {} of Total {}.'.format(correct, actual.size))
         accuracy = correct * 100.0 / actual.size
         log.info('detection accuracy: {}'.format(accuracy))
-        self.assertGreaterEqual(accuracy, 95.0) # achieve high accuracy
+        self.assertGreaterEqual(accuracy, 95.0) # achieve accuracy
 
