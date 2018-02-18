@@ -2,8 +2,10 @@ import cv2
 import numpy as np
 import logging as log
 import os
+import random
 
 import ImageSplitting as Imaging
+
 
 def prepareTrainingDataFromImageStrucuture(FolderPath):
     ''' Returns tuple containing trainingData matrix, label matrix, labels dict '''
@@ -12,12 +14,15 @@ def prepareTrainingDataFromImageStrucuture(FolderPath):
     labels = dict()
     labelData = []
     imageStructure = Imaging.ImageStructureCreateFromFolder(FolderPath)
+    log.debug('Image Structure: {}'.format(imageStructure))
     flatStructure = Imaging.getFlattenedStructure(imageStructure).viewitems()
+    log.debug('flattened image structure: {}'.format(flatStructure))
     imageFilenames = [k for k,v in flatStructure]
-    log.debug('flattened image structure: {}'.format(imageFilenames))
-    blockWidth, blockHeight = 30,30
+    random.shuffle(imageFilenames)
+    log.debug('image list shuffled: {}'.format(imageFilenames))
+    blockWidth, blockHeight = 70,70
     splittingBlock = Imaging.SplittingBlock(blockWidth, blockHeight,
-                                            OverlapHorizontal=0, OverlapVertical=0)
+                                            OverlapHorizontal=20, OverlapVertical=20)
     log.debug('image splitting: {}'.format(splittingBlock))
     for imgFileName in imageFilenames:
         img = cv2.imread(imgFileName,0) # data = grayscale pixel values
@@ -75,14 +80,14 @@ Returns actual and detected values for trained classes'''
     samples, labelValues, labels = prepareTrainingDataFromImageStrucuture(
         FolderPath)
     svm = cv2.SVM()
-    log.info("loading SVM .DAT file '{}'...".format(SvmDataFileName))
+    log.debug("loading SVM .DAT file '{}'...".format(SvmDataFileName))
     svm.load(SvmDataFileName) 
-    log.info('loaded SVM .DAT file successfully.')
+    log.debug('loaded SVM .DAT file successfully.')
     detectedValues = svm.predict_all(np.float32(samples)) 
     # ensure 1-D row matrix
     detectedValues.shape = 1, detectedValues.size # ensure row matrix
     labelValues.shape = 1, labelValues.size # ensure row matrix
-    log.info('labelValues{}: {}\n detectedValues{}: {}'
+    log.debug('labelValues{}: {}\n detectedValues{}: {}'
               .format(labelValues.shape, labelValues,
                       detectedValues.shape, detectedValues))
     return labelValues, detectedValues
